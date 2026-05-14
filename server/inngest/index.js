@@ -7,8 +7,8 @@ import sendEmail from "../config/nodemailer.js"
    id:"Tracking-system"
 })
  const autoCheckout =inngest.createFunction(
-    {id:"auto-check-out",triggers:[{event:"employee/check-out"},]},
-  
+    { id:"auto-check-out" },
+   { event:"employee/check-out" },
     async({event,step})=>{
         const{employeedId,attendanceId}=event.data
         await step.sleepUntil("wait-for-the-9-hours", new Date(new Date().getTime()+9*60*60*1000))
@@ -33,7 +33,9 @@ import sendEmail from "../config/nodemailer.js"
             await step.sleepUntil("wait-for-the-1-hour",new Date(new Date().getTime()+1*60*60*1000))
             attendance=await Attendance.findById(attendanceId)
             if(!attendance?.checkOut){
-                attendance.checkOut=new Date(attendance.checkIn).getTime()+4*60*60*1000
+              attendance.checkOut = new Date(
+         new Date(attendance.checkIn).getTime() + 4*60*60*1000
+           )
                 attendance.workingHours=4
                 attendance.dayType="Half Day"
                 attendance.status="LATE"
@@ -44,13 +46,15 @@ import sendEmail from "../config/nodemailer.js"
     }
  )
   const leaveApplicationReminder =inngest.createFunction(
-    {id:"leave-application-reminder", triggers:[{event:"leave/pending"},]},
+  { id:"leave-application-reminder" },
+{ event:"leave/pending" },
 
 
     async({event,step})=>{
         const {leaveApplicationId}=event.data
         await step.sleepUntil('wait-for-the-24-hours', new Date(new Date().getTime()+ 24*60*60 *1000))
-        const leaveApplication=await findById(leaveApplicationId)
+     const leaveApplication =
+ await LeaveApplication.findById(leaveApplicationId)
         if(leaveApplication?.status==="PENDING"){
             const employee = await Employee.findById(leaveApplication.employeedId)
             await sendEmail({
@@ -72,8 +76,8 @@ import sendEmail from "../config/nodemailer.js"
  )
 
  const attendanceReminderCron =inngest.createFunction(
-    {id:"attendance-reminder-cron", triggers:[ {cron:"TZ=Asia/Kolkata 30 11 * * * "},
-]},
+ { id:"attendance-reminder-cron" },
+{ cron:"TZ=Asia/Kolkata 30 11 * * *" },
    
     async({step})=>{
       const today =await step.run('get-today-date',()=>{
@@ -83,14 +87,24 @@ import sendEmail from "../config/nodemailer.js"
       })
       
       const activeEmployees=await step.run('get-active-employees',async()=>{
-       await Employee.find({isDeleted:false,employmentStatus:"ACTIVE"}).lean()
-       return employeeRoutes.map((e)=>({_id:e._id.toString(), firstName:e.firstName, lastName:e.lastName, email:e.email, department:e.department}))
+      const employees = await Employee.find({
+   isDeleted:false,
+   employmentStatus:"ACTIVE"
+}).lean()
+
+return employees.map((e)=>({
+   _id:e._id.toString(),
+   firstName:e.firstName,
+   lastName:e.lastName,
+   email:e.email,
+   department:e.department
+}))
       })
    
       const onLeaveIds=await step.run("get-on-leave-ids",async()=>{
         const leaves =await LeaveApplication.find({status:"APPROVED",
             startDate:{$lte:new Date(today.endUTC)},
-            endDate:{$gte:new Date(today.startDate)}
+            endDate:{$gte:new Date(today.startUTC)}
         }).lean()
         return leaves.map((l)=>l.employeeId.toString())
       })
@@ -101,7 +115,11 @@ import sendEmail from "../config/nodemailer.js"
         return attendance.map((a)=>a.employeeId.toString())
       })
 
-      const absentEmployees=activeEmployees.filter((emp)=>!onLeaveIds.includes(emp._id && !checkedInIds.includes(emp._id)))
+      const absentEmployees = activeEmployees.filter(
+   (emp) =>
+      !onLeaveIds.includes(emp._id) &&
+      !checkedInIds.includes(emp._id)
+)
 
       if(absentEmployees.length >0){
         await step.run('send-reminder-emails', async()=>{
