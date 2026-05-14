@@ -1,0 +1,1 @@
+export const DEPARTMENTS=["Engineering", "Human Resoures","Marketing", "Sales", "Finance","Operations","IT Support","Customer Success","Product Management", "Design"]
