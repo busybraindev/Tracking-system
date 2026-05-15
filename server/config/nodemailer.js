@@ -22,7 +22,7 @@ transporter.verify((err, success) => {
   }
 });
 
-const sendEmail=async(to,suject,body)=>{
+const sendEmail=async({to,subject,body})=>{
     const rs= await transporter.sendMail({
         from:process.env.SENDER_EMAIL,
         to,
