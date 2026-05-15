@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import Ls from "./Ls";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeftIcon, EyeIcon, EyeOffIcon, Loader2Icon } from "lucide-react";
+import { useAuth } from "../context/Auth";
+import toast from "react-hot-toast";
 
 const Lf = ({ role, title, subtitle }) => {
   const [em, sem] = useState("");
@@ -9,8 +11,20 @@ const Lf = ({ role, title, subtitle }) => {
   const [sp, shp] = useState(false);
   const [er, ser] = useState("");
   const [ld, sld] = useState(false);
+  const { login } = useAuth();
+  const nav = useNavigate();
   const hs = async (e) => {
     e.preventDefault();
+    ser("");
+    sld(true);
+    try {
+      await login(em, ps, role);
+      nav("/dashboard");
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.message || "Login Failed");
+    } finally {
+      sld(false);
+    }
   };
   return (
     <div className="min-h-screen flex flex-col md:flex-row">

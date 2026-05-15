@@ -6,7 +6,7 @@ export const getemployees = async(req,res)=>{
         const{department}=req.query
         const where ={}
         if(department) where.department= department
-        const employees =(await Emplooye.find(where)).toSorted({createdAt:-1}).populate("userId", "email role").lean()
+        const employees =await Employee.find(where).sort({createdAt:-1}).populate("userId", "email role").lean()
         const result =employees.map((emp)=>{
             return {...emp,
                 id:emp._id.toString(),
@@ -41,7 +41,7 @@ export const createEmployee =async(req,res)=>{
             email,
             phone,
             position,
-            department:department || "ENngineering",
+            department:department || "Engineering",
             basicSalary:Number(basicSalary)||0,
             allowances:Number(allowances)||0,
             deductions:Number(deductions)||0,
@@ -63,45 +63,75 @@ export const createEmployee =async(req,res)=>{
     }
 }
 
-export const updateEmployee =async(req,res)=>{
-       try{
-        const {id} = req.params
-        const{firstName, lastName,email,phone,position, department, basicSalary, allowances, deductions,password, role, employmentStatus}=req.body
-       const employee =await Employee.find(id)
-        if(!employee){
-            return res.status(404).json({error:"Employee not found"})
-        }
-     
-         await Employee.findByIdAndUpdate(id,{
-            firstName,
-            lastName,
-            email,
-            phone,
-            position,
-            department:department || "ENngineering",
-            basicSalary:Number(basicSalary)||0,
-            allowances:Number(allowances)||0,
-            deductions:Number(deductions)||0,
-            joinDate:new Date(joinDate),
-            bio:bio ||"",
-            employmentStatus:employmentStatus|| "ACTIVE"
-        })
-        const userUpdate= {email}
-        if(role) userUpdate.role = role
-        if(password) userUpdate.password =await bcrypt.hash(password,10)
-            await User.findByIdAndUpdate(employee.userId,userUpdate)
+export const updateEmployee = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-        return res.json({success:true})
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      position,
+      department,
+      basicSalary,
+      allowances,
+      deductions,
+      password,
+      role,
+      employmentStatus,
+      joinDate,
+      bio,
+    } = req.body;
+
+    const employee = await Employee.findById(id);
+
+    if (!employee) {
+      return res.status(404).json({ error: "Employee not found" });
     }
-    catch(err){
-        if(err.code===11000 ){
-            return res.status(400).json({error: "Email already exists"})
-        }
-       
-        return res.status(500).json({error: "failed to update employee"})
-        
+
+    // build update object safely
+    const updateData = {};
+
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (email) updateData.email = email;
+    if (phone) updateData.phone = phone;
+    if (position) updateData.position = position;
+
+    if (department) updateData.department = department;
+    if (basicSalary) updateData.basicSalary = Number(basicSalary);
+    if (allowances) updateData.allowances = Number(allowances);
+    if (deductions) updateData.deductions = Number(deductions);
+
+    if (joinDate) updateData.joinDate = new Date(joinDate);
+    if (bio !== undefined) updateData.bio = bio;
+
+    if (employmentStatus) updateData.employmentStatus = employmentStatus;
+
+    await Employee.findByIdAndUpdate(id, updateData, { new: true });
+
+    // update user table
+    const userUpdate = {};
+
+    if (email) userUpdate.email = email;
+    if (role) userUpdate.role = role;
+    if (password) userUpdate.password = await bcrypt.hash(password, 10);
+
+    if (Object.keys(userUpdate).length > 0) {
+      await User.findByIdAndUpdate(employee.userId, userUpdate);
     }
-}
+
+    return res.json({ success: true });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    console.log(err);
+    return res.status(500).json({ error: "failed to update employee" });
+  }
+};
 export const deleteEmployee=async(req, res)=>{
     try{
         const{id}=req.params

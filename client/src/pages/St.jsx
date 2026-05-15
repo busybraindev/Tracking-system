@@ -4,20 +4,29 @@ import Ld from "../components/Ld";
 import { Lock } from "lucide-react";
 import Pf from "../components/Pf";
 import Cp from "../components/Cp";
+import { useAuth } from "../context/Auth";
+import api from "../api/axios";
+import { toast } from "react-hot-toast";
 
 const St = () => {
   const [pf, spf] = useState(null);
   const [ld, sld] = useState(true);
   const [sp, ssh] = useState(false);
+  const { us } = useAuth();
   const fp = async () => {
-    spf(dummyProfileData);
-    setTimeout(() => {
+    try {
+      const res = await api.get("/profile");
+      const profile = res.data;
+      if (profile) spf(profile);
+    } catch (err) {
+      toast.error(err.response?.data?.error || err?.message);
+    } finally {
       sld(false);
-    }, 1000);
+    }
   };
   useEffect(() => {
     fp();
-  }, [fp]);
+  }, []);
   if (ld) return <Ld></Ld>;
   return (
     <div className="animate-fade-in">

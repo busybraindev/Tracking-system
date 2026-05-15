@@ -1,5 +1,6 @@
 import { CalendarDays, FileText, Loader2, Send, X } from "lucide-react";
 import React, { useState } from "react";
+import api from "../../api/axios";
 
 const Al = ({ open, onClose, onSuccess }) => {
   const [ld, sld] = useState(false);
@@ -9,6 +10,17 @@ const Al = ({ open, onClose, onSuccess }) => {
   const minDate = tomorrow.toISOString().split("T")[0];
   const hs = async (e) => {
     e.preventDefault();
+    sld(true);
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    try {
+      await api.post("/leave", data);
+      onSuccess();
+      onClose();
+    
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.message);
+    }
   };
   if (!open) return null;
   return (
@@ -85,7 +97,7 @@ const Al = ({ open, onClose, onSuccess }) => {
               Cancel
             </button>
             <button
-              onClick={onClose}
+              // onClick={onClose}
               type="submit"
               disabled={ld}
               className="btn-primary flex items-center justify-center gap-2 flex-1"

@@ -2,10 +2,14 @@ import jwt from "jsonwebtoken"
 export const protect =(req,res,next)=>{
     try{
         const authHeader =req.headers.authorization;
+        console.log(authHeader);
+        
         if(!authHeader || !authHeader.startsWith("Bearer")){
             return res.status(401).json({error: "Unauthorized"})
         }
-        const token =authHeader.split("")[1]
+        const token =authHeader.split(" ")[1]
+        console.log(token);
+        
         const session=jwt.verify(token, process.env.JWT_SECRET)
         if(!session){
             return res.status(401).json({error:"Unauthorized"})
@@ -14,7 +18,7 @@ export const protect =(req,res,next)=>{
         next()
     }
     catch(err){
-        return res.status(401).json({error:"Unauthorized"})
+        return res.status(500).json({error:"Unauthorized"})
     }
 }
 

@@ -1,4 +1,5 @@
 import Payslip from "../models/Ps.js"
+import Employee from "../models/Em.js"
 
 export const createpaySlips =async(req,res)=>{
     try{
@@ -27,7 +28,7 @@ export const getPayslips =async(req,res)=>{
         const session =req.session;
         const isAdmin = session.role ==="ADMIN"
         if(isAdmin){
-            const payslips=await Payslip.find().populate("employeeId").sort({created:-1})
+            const payslips=await Payslip.find().populate("employeeId").sort({createdAt:-1})
             const data =payslips.map((p)=>{
                 const obj = p.toObject()
                 return {...obj, 
@@ -36,18 +37,36 @@ export const getPayslips =async(req,res)=>{
                     employeeId:obj.employeeId._id?.toString()
                 }
             })
-            return res.json(data)
+            return res.json({data})
         }else{
-            const employee =await Employee.findOne({userId:session.userId})
-            if(!employee){
-                return res.status(404).json({error:"Not found"})
-            }
-            const payslips = await Payslip.find({employeeId: employee._id}).sort({createdAt:-1})
-            res.json({data:payslips})
+            console.log('Rof', session.userId)
+           const employee = await Employee.findOne({ userId: session.userId });
+
+if (!employee) {
+  return res.status(404).json({ error: "Not found" });
+}
+
+const payslips = await Payslip.find({ employeeId: employee._id })
+  .populate("employeeId")
+  .sort({ createdAt: -1 });
+
+const data = payslips.map((p) => {
+  const obj = p.toObject();
+
+  return {
+    ...obj,
+    id: obj._id.toString(),
+    employee: obj.employeeId, // IMPORTANT (same as admin)
+    employeeId: obj.employeeId?._id?.toString(),
+  };
+});
+
+return res.json({ data });
         }
 
     }
    catch(err){
+      console.log("PAYSLIP ERROR:", err);
         return res.status(500).json({error:'Failed'})
     }
 }

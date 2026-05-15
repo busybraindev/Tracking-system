@@ -47,7 +47,7 @@ const Ah = ({ history }) => {
                         : "-"}
                     </td>
                     <td className="px-6 py-4 text-slate-600">
-                      {record.checkIn
+                      {record.checkOut
                         ? new Date(record.checkOut).toLocaleTimeString(
                             "en-US",
                             {

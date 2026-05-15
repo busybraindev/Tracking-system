@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { dummyPayslipData } from "../assets/assets";
 import Ld from "../components/Ld";
+import api from "../api/axios";
 
 const Pp = () => {
   const { id } = useParams();
@@ -13,10 +14,13 @@ const Pp = () => {
       year: "numeric",
     });
   useEffect(() => {
-    spp(dummyPayslipData.find((slip) => slip._id === id));
-    setTimeout(() => {
-      sld(false);
-    }, 1000);
+    api
+      .get(`/payslips/${id}`)
+      .then((res) => spp(res.data))
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => sld(false));
   }, [id]);
   if (ld) return <Ld></Ld>;
   if (!pp)

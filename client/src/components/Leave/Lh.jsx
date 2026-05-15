@@ -1,10 +1,18 @@
 import { Check, Loader2, X } from "lucide-react";
 import React, { useState } from "react";
-
+import api from "../../api/axios";
 const Lh = ({ leaves, isAdmin, onUpdate }) => {
   const [pc, spc] = useState(null);
   const hs = async (id, status) => {
     spc(id);
+    try {
+      await api.patch(`/leave/${id}`, { status });
+      onUpdate();
+    } catch (err) {
+      toast.error(err.response?.data?.error || err?.message);
+    } finally {
+      spc(null);
+    }
   };
   const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-GB", {

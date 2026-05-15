@@ -4,6 +4,7 @@ import { dummyEmployeeData, DEPARTMENTS } from "../assets/assets";
 import { Plus, Search, X } from "lucide-react";
 import Ec from "../components/Ec";
 import Fm from "../components/Fm";
+import api from "../api/axios";
 
 const Em = () => {
   const [em, sem] = useState([]);
@@ -14,11 +15,19 @@ const Em = () => {
   const [sm, ssm] = useState(false);
   const ft = useCallback(async () => {
     sld(true);
-    sem(dummyEmployeeData.filter((emp) => (st ? emp.department === st : emp)));
-    setTimeout(() => {
+
+    try {
+      const url = st ? `/employees?department=${st}` : "/employees";
+
+      const rs = await api.get(url);
+      sem(rs.data);
+    } catch (err) {
+      console.error("Failed to fetch employees", err);
+    } finally {
       sld(false);
-    }, 1000);
+    }
   }, [st]);
+
   useEffect(() => {
     ft();
   }, [ft]);

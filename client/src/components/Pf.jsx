@@ -1,5 +1,6 @@
 import { Loader2, User, Save } from "lucide-react";
 import React, { useState } from "react";
+import api from "../api/axios";
 
 const Pf = ({ initialData, onSuccess }) => {
   const [ld, sld] = useState(false);
@@ -7,6 +8,19 @@ const Pf = ({ initialData, onSuccess }) => {
   const [ms, sms] = useState("");
   const hs = async (e) => {
     e.preventDefault();
+    sld(true);
+    ser("");
+    sms("");
+    const formData = new FormData(e.currentTarget);
+    try {
+      await api.post("/profile", formData);
+      sms("Profile updated succesfully");
+      onSuccess?.();
+    } catch (err) {
+      ser(er.response?.data?.error || err.message);
+    } finally {
+      sld(false);
+    }
   };
   return (
     <form onSubmit={hs} className="card p-5 sm:p-6 mb-6">
@@ -33,7 +47,7 @@ const Pf = ({ initialData, onSuccess }) => {
             </label>
             <input
               disabled
-              value={`${initialData.firstName} ${initialData.lastName}`}
+              value={`${initialData?.firstName} ${initialData?.lastName}`}
               className="bg-slate-50 text-slate-400 cursor-not-allowed"
             />
           </div>
@@ -43,7 +57,7 @@ const Pf = ({ initialData, onSuccess }) => {
             </label>
             <input
               disabled
-              value={initialData.email}
+              value={initialData?.email}
               className="bg-slate-50 text-slate-400 cursor-not-allowed"
             />
           </div>
@@ -53,7 +67,7 @@ const Pf = ({ initialData, onSuccess }) => {
             </label>
             <input
               disabled
-              value={initialData.position}
+              value={initialData?.position}
               className="bg-slate-50 text-slate-400 cursor-not-allowed"
             />
           </div>
@@ -63,17 +77,17 @@ const Pf = ({ initialData, onSuccess }) => {
             Bio
           </label>
           <textarea
-            disabled={initialData.isDeleted}
+            disabled={initialData?.isDeleted}
             name="bio"
-            defaultValue={initialData.bio || ""}
+            defaultValue={initialData?.bio || ""}
             placeholder="Write a brief bio..."
-            className={`resize-none ${initialData.isDeleted ? "bg-slate-50 text-slate-400 cursor-not-allowed" : ""}`}
+            className={`resize-none ${initialData?.isDeleted ? "bg-slate-50 text-slate-400 cursor-not-allowed" : ""}`}
           ></textarea>
           <p className="text-xs text-slate-400 mt-1.5">
             This will be displayed on your profile
           </p>
         </div>
-        {initialData.isDeleted ? (
+        {initialData?.isDeleted ? (
           <div className="pt-2">
             <p className="text-rose-600 font-medium tracking-tight">
               Account Deactivated

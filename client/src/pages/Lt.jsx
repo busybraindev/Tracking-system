@@ -1,8 +1,13 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import Sb from "../components/Sb";
+import { useAuth } from "../context/Auth";
+import Ld from "../components/Ld";
 
 const Lt = () => {
+  const { us, ld } = useAuth();
+  if (ld) return <Ld></Ld>;
+  if (!us) return <Navigate to={"/login"}></Navigate>;
   return (
     <div className="flex h-screen bg-linear-to-br from-slate-50 via-white to-indigo-50/30">
       <Sb></Sb>

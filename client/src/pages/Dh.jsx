@@ -6,17 +6,21 @@ import {
 import Ld from "../components/Ld";
 import Ed from "../components/Ed";
 import Ad from "../components/Ad";
+import api from "../api/axios";
+import { toast } from "react-hot-toast";
 
 const Dh = () => {
   const [dt, sdt] = useState(null);
   const [ld, sld] = useState(true);
   useEffect(() => {
-    sdt(dummyAdminDashboardData);
-    // sdt(dummyEmployeeDashboardData);
-    setTimeout(() => {
-      sld(false);
-    }, 1000);
+    api
+      .get("/dashboard")
+      .then((res) => sdt(res.data))
+      .catch((err) => toast.error(err.response?.data?.error || err.message))
+      .finally(() => sld(false));
   }, []);
+  console.log(dt?.role);
+
   if (ld) return <Ld></Ld>;
   if (!dt)
     return (

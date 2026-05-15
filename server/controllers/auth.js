@@ -28,7 +28,7 @@ export const login =async(req,res)=>{
             email:user.email
         }
         const token=jwt.sign(payload,process.env.JWT_SECRET, {expiresIn:"7d"})
-        return res.json({user:password, token})
+        return res.json({user:payload, token})
     }
     catch(err){
         console.log("Login Error", err)
@@ -36,7 +36,7 @@ export const login =async(req,res)=>{
     }
 }
  export const session =async(req,res)=>{
-    const {session}= req.session;
+    const session= req.session;
     return res.json({user:session})
 
  }
@@ -52,7 +52,7 @@ export const login =async(req,res)=>{
         const isValid = await bcrypt.compare(currentPassword, user.password)
     if(!isValid) return res.status(400).json({error:"Current password is not correct"})
         const hp = await bcrypt.hash(newPassword,10)
-      await User.findByIdAndDelete(session.userId,{password: hp})
+      await User.findByIdAndUpdate(session.userId,{password: hp})
       return res.json({success:true})
     }
     catch(err){

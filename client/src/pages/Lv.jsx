@@ -9,18 +9,27 @@ import {
 } from "lucide-react";
 import Lh from "../components/Leave/Lh";
 import Al from "../components/Leave/Al";
+import { useAuth } from "../context/Auth";
+import api from "../api/axios";
+import { toast } from "react-hot-toast";
 
 const Lv = () => {
   const [lv, ssl] = useState([]);
   const [ld, sld] = useState(true);
   const [sh, ssh] = useState(false);
   const [isd, sisd] = useState(false);
-  const isAdmin = false;
-  const fl = useCallback(() => {
-    ssl(dummyLeaveData);
-    setTimeout(() => {
+  const { us } = useAuth();
+  const isAdmin = us?.role === "ADMIN";
+  const fl = useCallback(async () => {
+    try {
+      const res = await api.get("/leave");
+      ssl(res.data.data || []);
+      if (res.data.employee?.isDeleted) sisd(true);
+    } catch (err) {
+      toast.error(err.response?.data?.error);
+    } finally {
       sld(false);
-    }, 1000);
+    }
   }, []);
   useEffect(() => {
     fl();

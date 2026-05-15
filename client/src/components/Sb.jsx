@@ -7,25 +7,33 @@ import {
   DollarSignIcon,
   FileTextIcon,
   LayoutGridIcon,
+  Loader2,
+  Loader2Icon,
   LogOutIcon,
   MenuIcon,
   SettingsIcon,
   UserIcon,
   XIcon,
 } from "lucide-react";
+import { useAuth } from "../context/Auth";
+import api from "../api/axios";
 
 const Sb = () => {
   const { pathname } = useLocation();
-  const [us, sus] = useState();
+  const [usr, sus] = useState();
   const [mb, smb] = useState(false);
+  const { us, ld, logOut } = useAuth();
 
   useEffect(() => {
-    sus(dummyProfileData.firstName + " " + dummyProfileData.lastName);
+    api.get("/profile").then(({ data }) => {
+      if (data.firstName)
+        sus(`${data.firstName} ${data.lastName || ""}`.trim());
+    });
   }, []);
   useEffect(() => {
     smb(false);
   }, [pathname]);
-  const role = "" || "EMPLOYEE";
+  const role = us?.role;
   const nav = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutGridIcon },
     role === "ADMIN"
@@ -36,6 +44,7 @@ const Sb = () => {
     { name: "Settings", href: "/settings", icon: SettingsIcon },
   ];
   const lg = () => {
+    logOut();
     window.location.href = "/login";
   };
   const Sbr = () => (
@@ -67,13 +76,13 @@ const Sb = () => {
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-slate-800 flex items-center justify-center ring-1 ring-white/10 shrink-0">
               <span className="text-slate-400 text-xs font-semibold">
-                {us.charAt(0).toUpperCase()}
+                {usr?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="min-w-0">
               <p className="text-[13px] font-medium text-slate-200 truncate">
                 {" "}
-                {us}
+                {usr}
               </p>
               <p className="text-[11px] text-slate-500 truncate">
                 {role === "ADMIN" ? "Administrator" : "Employee"}
@@ -88,27 +97,35 @@ const Sb = () => {
         </p>
       </div>
       <div className="flex-1 px-3 space-y-0.5 overflow-y-auto">
-        {nav.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`group flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-all duration-150 relative ${isActive ? "bg-indigo-500/12 text-indigo-300" : "text-slate-300 hover:text-white hover: bg-white/4"}`}
-            >
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-500"></div>
-              )}
-              <item.icon
-                className={`w-[17px] h-[17px] shrink-0 ${isActive ? "text-indigo-300" : "text-slate-400 group-hover:text-slate-300"}`}
-              ></item.icon>
-              <span className="flex-1">{item.name}</span>
-              {isActive && (
-                <ChevronRightIcon className="w-3.5 h-3.5 text-indigo-500/50"></ChevronRightIcon>
-              )}
-            </Link>
-          );
-        })}
+        {ld ? (
+          <div className="px-3 py-3 flex items-center gap-2 to-slate-500">
+            {" "}
+            <Loader2 className="animate-spin w-4 h-4"></Loader2>{" "}
+            <span className="text-sm">Loading....</span>
+          </div>
+        ) : (
+          nav.map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-all duration-150 relative ${isActive ? "bg-indigo-500/12 text-indigo-300" : "text-slate-300 hover:text-white hover: bg-white/4"}`}
+              >
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-indigo-500"></div>
+                )}
+                <item.icon
+                  className={`w-[17px] h-[17px] shrink-0 ${isActive ? "text-indigo-300" : "text-slate-400 group-hover:text-slate-300"}`}
+                ></item.icon>
+                <span className="flex-1">{item.name}</span>
+                {isActive && (
+                  <ChevronRightIcon className="w-3.5 h-3.5 text-indigo-500/50"></ChevronRightIcon>
+                )}
+              </Link>
+            );
+          })
+        )}
       </div>
       <div className="p-3 border-t border-white/6">
         <button

@@ -1,9 +1,14 @@
 import React from "react";
 import Ls from "../components/Ls";
 import { ArrowRightIcon, ShieldIcon, UserIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "../context/Auth";
+import Ld from "../components/Ld";
 
 const Lg = () => {
+  const { us, ld } = useAuth();
+  if (ld) return <Ld></Ld>;
+  if (us) return <Navigate to={"/"}></Navigate>;
   const pt = [
     {
       to: "/login/admin",

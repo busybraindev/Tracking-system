@@ -22,7 +22,7 @@ export const getDashboard =async(req,res)=>{
                 role:"ADMIN",
                 totalEmployees,
                 totalDepartments:DEPARTMENTS.length,
-                totalAttendance,
+                todayAttendance,
                 pendingLeaves
 
             })
@@ -47,7 +47,7 @@ export const getDashboard =async(req,res)=>{
                     employeeId:employee._id,
                     status:"PENDING"
                 }),
-                Payslip.findOne({employeeId:employee._Id}).sort({createdAt:-1}).lean()
+                Payslip.findOne({employeeId:employee._id}).sort({createdAt:-1}).lean()
             ])
             return res.json({
                 role:"EMPLOYEE",

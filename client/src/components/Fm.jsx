@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DEPARTMENTS } from "../assets/assets";
 import { Loader2Icon } from "lucide-react";
+import api from "../api/axios";
+import { toast } from "react-hot-toast";
 
 const Fm = ({ initialData, onSuccess, onCancel }) => {
   const nav = useNavigate();
@@ -9,6 +11,22 @@ const Fm = ({ initialData, onSuccess, onCancel }) => {
   const isEdit = !!initialData;
   const hs = async (e) => {
     e.preventDefault();
+    sld(true);
+    const formData = new FormData(e.currentTarget);
+    if (isEdit) {
+      const pwd = formData.get("password");
+      if (!pwd) formData.delete("password");
+    }
+    try {
+      const url = isEdit ? `/employees/${initialData.id}` : "/employees";
+      const method = isEdit ? "put" : "post";
+      await api[method](url, formData);
+      onSuccess ? onSuccess() : nav("/employees");
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.message);
+    } finally {
+      sld(false);
+    }
   };
   return (
     <form onSubmit={hs} className="space-y-6 max-w-3xl animate-fade-in">
@@ -20,7 +38,7 @@ const Fm = ({ initialData, onSuccess, onCancel }) => {
           <div>
             <label className="block mb-2">First Name</label>
             <input
-              name="firstname"
+              name="firstName"
               type="text"
               required
               defaultValue={initialData?.firstName}
@@ -29,7 +47,7 @@ const Fm = ({ initialData, onSuccess, onCancel }) => {
           <div>
             <label className="block mb-2">Last Name</label>
             <input
-              name="lastname"
+              name="lastName"
               type="text"
               required
               defaultValue={initialData?.lastName}
@@ -60,7 +78,7 @@ const Fm = ({ initialData, onSuccess, onCancel }) => {
           <div className="sm:col-span-2">
             <label className="block mb-2">Bio(Optional)</label>
             <textarea
-              name="bio "
+              name="bio"
               defaultValue={initialData?.bio}
               rows={3}
               className="resize-none"
@@ -78,7 +96,7 @@ const Fm = ({ initialData, onSuccess, onCancel }) => {
             <label className="block mb-2"></label>
             <select
               name="department"
-              defaultValue={initialData?.departmnet || ""}
+              defaultValue={initialData?.department || ""}
             >
               <option value="">Select Department</option>
               {DEPARTMENTS.map((dept) => {

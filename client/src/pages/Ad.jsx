@@ -3,17 +3,25 @@ import { dummyAttendanceData } from "../assets/assets";
 import Ld from "../components/Ld";
 import Cb from "../components/Attendance/Cb";
 import As from "../components/Attendance/As";
-import Ah from "../components/Attendance/Ah"
+import Ah from "../components/Attendance/Ah";
+import api from "../api/axios";
+import { toast } from "react-hot-toast";
 
 const Ad = () => {
   const [ht, sth] = useState([]);
   const [ld, sld] = useState(true);
   const [dt, std] = useState(false);
   const fd = useCallback(async () => {
-    sth(dummyAttendanceData);
-    setTimeout(() => {
+    try {
+      const rs = await api.get("/attendance");
+      const json = rs.data;
+      sth(json.data);
+      if (json.employee?.isDeleted) std(true);
+    } catch (err) {
+      toast.error(err?.response?.data?.error || err?.message);
+    } finally {
       sld(false);
-    }, 1000);
+    }
   });
   useEffect(() => {
     fd();

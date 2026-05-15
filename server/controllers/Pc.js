@@ -3,7 +3,10 @@ import Employee from "../models/Em.js"
 export const getProfile =async(req,res)=>{
     try{
         const session = req.session
+        console.log("SESSION:", req.session);
+console.log("USERID:", req.session?.userId);
         const employee = await Employee.findOne({userId:session.userId})
+        console.log(employee)
         if(!employee){
             return res.json({firstName: "Admin", lastName:"",email:session.email})
         }
@@ -11,6 +14,7 @@ export const getProfile =async(req,res)=>{
     }
     catch(err){
         return res.status(500).json({error:"Failed to fetch profile"})
+        console.log(err)
     }
 }
 
@@ -29,5 +33,6 @@ export const updateprofile = async(req,res)=>{
         
     }catch(err){
         return res.status(500).json({error:"Failed to update profile"})
+         console.log(err)
     }
     }
