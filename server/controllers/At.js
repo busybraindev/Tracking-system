@@ -19,7 +19,7 @@ export const clockInOut  =async(req,res) =>{
         const existing  =await Attendance.findOne({employeeId:employee._id,date:today})
         const now  = new Date()
         if(!existing){
-            const isLate  = now.getHours()>=9 && now.getMinutes()>0
+           const isLate = now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 0);
             const attendance  =await Attendance.create({
                 employeeId: employee._id,
                 date:today,
@@ -31,7 +31,7 @@ export const clockInOut  =async(req,res) =>{
                 name:"employee/check-out",
                 data:{
                     employeeId:employee._id,
-                    attendance:attendance._id
+                    attendanceId:attendance._id
                 }
             })
             return res.json({success:true, type:"CHECK_IN", date:attendance})
