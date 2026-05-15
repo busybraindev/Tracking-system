@@ -11,6 +11,73 @@ export const inngest = new Inngest({
 
 // ========================
 // AUTO CHECKOUT
+// // ========================
+// const autoCheckout = inngest.createFunction(
+//   {
+//     id: "auto-check-out",
+//     triggers: [{ event: "employee/check-out" }],
+//   },
+
+//   async ({ event, step }) => {
+//     const { employeeId, attendanceId } = event.data;
+
+//     await step.sleepUntil(
+//       "wait-9-hours",
+//       // new Date(Date.now() + 9 * 60 * 60 * 1000)
+//       new Date(Date.now() + 30 * 1000)
+//     );
+
+//     let attendance = await Attendance.findById(attendanceId);
+
+//     if (!attendance?.checkOut) {
+//       const employee = await Employee.findById(employeeId);
+
+//       if (employee) {
+//         await sendEmail({
+//           to: employee.email,
+//           subject: "Attendance Check-Out Reminder",
+//           body: `
+//             <div style="max-width:600px;">
+//               <h2>Hi ${employee.firstName},</h2>
+
+//               <p>You are still checked in at ${employee.department}</p>
+
+//               <p style="font-weight:bold;">
+//                 ${attendance?.checkIn?.toLocaleTimeString()}
+//               </p>
+
+//               <p>Please check out within 1 hour.</p>
+//             </div>
+//           `,
+//         });
+//       }
+
+//       await step.sleepUntil(
+//         "wait-1-hour",
+//         // new Date(Date.now() + 1 * 60 * 60 * 1000)
+       
+//   new Date(Date.now() + 20 * 1000)
+// )
+
+//       attendance = await Attendance.findById(attendanceId);
+
+//       if (!attendance?.checkOut) {
+//         attendance.checkOut = new Date(
+//           new Date(attendance.checkIn).getTime() + 4 * 60 * 60 * 1000
+//         );
+
+//         attendance.workingHours = 4;
+//         attendance.dayType = "Half Day";
+//         attendance.status = "LATE";
+
+//         await attendance.save();
+//       }
+//     }
+//   }
+// );
+
+// ========================
+// AUTO CHECKOUT (FIXED)
 // ========================
 const autoCheckout = inngest.createFunction(
   {
@@ -21,62 +88,74 @@ const autoCheckout = inngest.createFunction(
   async ({ event, step }) => {
     const { employeeId, attendanceId } = event.data;
 
+    // ⏱ wait before reminder (TEST MODE: 30s)
     await step.sleepUntil(
       "wait-9-hours",
-      // new Date(Date.now() + 9 * 60 * 60 * 1000)
       new Date(Date.now() + 30 * 1000)
     );
 
     let attendance = await Attendance.findById(attendanceId);
 
-    if (!attendance?.checkOut) {
-      const employee = await Employee.findById(employeeId);
+    // 🔥 SAFE CHECK 1: attendance must exist
+    if (!attendance) {
+      console.log("❌ Attendance not found:", attendanceId);
+      return;
+    }
 
-      if (employee) {
-        await sendEmail({
-          to: employee.email,
-          subject: "Attendance Check-Out Reminder",
-          body: `
-            <div style="max-width:600px;">
-              <h2>Hi ${employee.firstName},</h2>
+    // If already checked out, stop
+    if (attendance.checkOut) return;
 
-              <p>You are still checked in at ${employee.department}</p>
+    const employee = await Employee.findById(employeeId);
 
-              <p style="font-weight:bold;">
-                ${attendance?.checkIn?.toLocaleTimeString()}
-              </p>
+    if (employee) {
+      await sendEmail({
+        to: employee.email,
+        subject: "Attendance Check-Out Reminder",
+        body: `
+          <div style="max-width:600px;">
+            <h2>Hi ${employee.firstName},</h2>
 
-              <p>Please check out within 1 hour.</p>
-            </div>
-          `,
-        });
-      }
+            <p>You are still checked in at ${employee.department}</p>
 
-      await step.sleepUntil(
-        "wait-1-hour",
-        // new Date(Date.now() + 1 * 60 * 60 * 1000)
-       
-  new Date(Date.now() + 20 * 1000)
-)
+            <p style="font-weight:bold;">
+              ${attendance.checkIn?.toLocaleTimeString?.() || "N/A"}
+            </p>
 
-      attendance = await Attendance.findById(attendanceId);
+            <p>Please check out within 1 hour.</p>
+          </div>
+        `,
+      });
+    }
 
-      if (!attendance?.checkOut) {
-        attendance.checkOut = new Date(
-          new Date(attendance.checkIn).getTime() + 4 * 60 * 60 * 1000
-        );
+    // ⏱ second wait (TEST MODE: 20s)
+    await step.sleepUntil(
+      "wait-1-hour",
+      new Date(Date.now() + 20 * 1000)
+    );
 
-        attendance.workingHours = 4;
-        attendance.dayType = "Half Day";
-        attendance.status = "LATE";
+    attendance = await Attendance.findById(attendanceId);
 
-        await attendance.save();
-      }
+    // 🔥 SAFE CHECK 2: re-check existence
+    if (!attendance) {
+      console.log("❌ Attendance disappeared after sleep:", attendanceId);
+      return;
+    }
+
+    if (!attendance.checkOut && attendance.checkIn) {
+      const checkInTime = attendance.checkIn;
+
+      attendance.checkOut = new Date(
+        new Date(checkInTime).getTime() + 4 * 60 * 60 * 1000
+      );
+
+      attendance.workingHours = 4;
+      attendance.dayType = "Half Day";
+      attendance.status = "LATE";
+
+      await attendance.save();
     }
   }
 );
-
-
 // ========================
 // LEAVE REMINDER
 // ========================
