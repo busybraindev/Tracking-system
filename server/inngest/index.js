@@ -226,7 +226,12 @@ const attendanceReminderCron = inngest.createFunction(
                 <div style="max-width:600px;">
                   <h2>Hi ${emp.firstName}</h2>
                   <p>You haven't marked attendance today.</p>
-                  <p>Department: ${emp.department}</p>
+                   <p>The deadline was <strong>11:30 pm</strong> and your attendnace is missing</.</p>
+
+                   <p>Please check in as soon as possible or contact your admin if u are facing issues.</p>
+                   <p>Department: ${emp.department}</p>
+                    <p>Best Regards.</p>
+                    <p><strong>QUICKEMS</strong></p>
                 </div>
               `,
             })
