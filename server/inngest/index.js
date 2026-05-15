@@ -23,7 +23,8 @@ const autoCheckout = inngest.createFunction(
 
     await step.sleepUntil(
       "wait-9-hours",
-      new Date(Date.now() + 9 * 60 * 60 * 1000)
+      // new Date(Date.now() + 9 * 60 * 60 * 1000)
+      new Date(Date.now() + 30 * 1000)
     );
 
     let attendance = await Attendance.findById(attendanceId);
@@ -53,8 +54,10 @@ const autoCheckout = inngest.createFunction(
 
       await step.sleepUntil(
         "wait-1-hour",
-        new Date(Date.now() + 1 * 60 * 60 * 1000)
-      );
+        // new Date(Date.now() + 1 * 60 * 60 * 1000)
+       
+  new Date(Date.now() + 20 * 1000)
+)
 
       attendance = await Attendance.findById(attendanceId);
 
@@ -88,7 +91,8 @@ const leaveApplicationReminder = inngest.createFunction(
 
     await step.sleepUntil(
       "wait-24-hours",
-      new Date(Date.now() + 24 * 60 * 60 * 1000)
+      new Date(Date.now() + 30 * 1000)
+      // new Date(Date.now() + 24 * 60 * 60 * 1000)
     );
 
     const leaveApplication = await LeaveApplication.findById(
