@@ -34,6 +34,9 @@ export const clockInOut  =async(req,res) =>{
                     attendanceId:attendance._id
                 }
             })
+          inngest.send({
+  name: "attendance/test-cron",
+});
             return res.json({success:true, type:"CHECK_IN", date:attendance})
         }
         else if(!existing.checkOut){
